@@ -1,8 +1,13 @@
 import numpy as np
 import cv2
 
+import NeuralNetwork
+
 batch_size = 1
 nn_hdim = 1024
+learning_rate = 0.02
+f1 = "relu"
+f2 = "relu"
 
 
 
@@ -38,6 +43,9 @@ def main():
     train_label = []
     val_label = []
     train_data, val_data, train_label, val_label = load_data(train_data, val_data, train_label, val_label)
+    my_net = NeuralNetwork.NeuralNetwork(learning_rate, f1, f2)
+    batch = train_data[0:batch_size, :]
+    my_net.forward_pass()
 
 
 if __name__ == "__main__":
