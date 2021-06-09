@@ -8,8 +8,6 @@ val_data = []
 train_label = []
 val_label = []
 
-load_image()
-    image = np.load
 
 def load_data():
 
