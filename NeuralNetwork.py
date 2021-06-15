@@ -3,13 +3,19 @@ import cv2
 import main
 
 class NeuralNetwork():
+##W1 = 1024X nn_hdim
+## w2 = nn.hdim X 1
+##b1= 1Xnn_hdim
+##b2=1X1
+##z1 = 1X nn_hdim
+##z2= 1X1
 
     def __init__(self, learning_rate, f1, f2):
         self.learning_rate = learning_rate
-        self.W1 = np.random.normal(0, 1, (1024, main.nn_hdim))
-        self.b1 = np.random.normal(0, 1, (1, main.nn_hdim))
-        self.W2 = np.random.normal(0, 1, (main.nn_hdim, 1))
-        self.b2 = np.random.normal(0, 1, (1, 1))
+        self.W1 = np.random.normal(0, 0.001, (1024, main.nn_hdim))
+        self.b1 = np.random.normal(0, 0.001, (1, main.nn_hdim))
+        self.W2 = np.random.normal(0, 0.001, (main.nn_hdim, 1))
+        self.b2 = np.random.normal(0, 0.001, (1, 1))
         self.f1 = f1
         self.f2 = f2
         self.z1 = None
@@ -17,6 +23,9 @@ class NeuralNetwork():
         self.z2 = None
         self.a2 = None
         self.loss = None
+        self.delta_1= None
+        self.delta_2 = None
+        self.accuracy = 0
 
     def sigmoid(self, x):
         return 1.0 / (1.0 + np.exp(-x))
@@ -24,15 +33,18 @@ class NeuralNetwork():
     def sigmoid_derivative(self, z):
         return self.sigmoid(z)* (1-self.sigmoid(z))
 
-
     def tanh_derivative(self, z):
        return 1/(np.cosh(z)**2)
 
-    def tanh(self, x):
-        return np.tanh(x)
+    def relu_derivative(self,z):
+        y = (z > 0) * 1
+        return y
 
-    def relu(self, x):
-        return np.maximum(0, x)
+    def tanh(self, z):
+        return np.tanh(z)
+
+    def relu(self, z):
+        return np.maximum(0,z)
 
     # def apply_tanh(self, z):
         # preform_vectorized_tanh = np.vectorize(self.tanh)
@@ -58,8 +70,23 @@ class NeuralNetwork():
         elif activation_function == "relu":
             return self.relu(x)
 
+    def apply_activation_derivative(self, activation_function, x):
+        if activation_function == "tanh":
+            return self.tanh_derivative(x)
+        elif activation_function == "sigmoid":
+            return self.sigmoid_derivative(x)
+        elif activation_function == "relu":
+            return self.relu_derivative(x)
+
     def loss_function(self, predicted, labels):
         return (((labels-predicted)**2)/2).mean()
+
+    def loss_function_derivative(self, predicted, labels):
+        return predicted-labels
+
+    def calculate_accuracy(self, labels):
+        self.accuracy = (np.round(self.a2) == labels).mean()
+
 
     def forward_pass(self, input, labels):
         self.z1 = self.calculate_linear_combination(input, self.W1, self.b1)
@@ -68,10 +95,19 @@ class NeuralNetwork():
         self.a2 = self.apply_activation(self.f2, self.z2)
         self.loss = self.loss_function(self.a2, labels)
 
+    def backward_pass(self, labels):
+        labels = np.expand_dims(labels, axis=1)
+        self.delta_2 = self.loss_function_derivative(self.a2, labels)*\
+                       self.apply_activation_derivative(self.f2, self.z2)
+        self.delta_1 = self.calculate_linear_combination(self.delta_2, self.W2.transpose(), 0) *\
+                       self.apply_activation_derivative(self.f1,self.z1)
 
-
-
-
-
-
-
+    def compute_gradient(self, input):
+            self.b1 -= self.delta_1.mean(axis = 0) * self.learning_rate
+            self.b2 -= self.delta_2.mean(axis = 0) * self.learning_rate
+            self.W1 -= (self.learning_rate* np.expand_dims(input.mean(axis = 0),1) * \
+                        np.expand_dims(self.delta_1.mean(axis = 0),0))
+            ##print((np.expand_dims(input.mean(axis = 0),1) * np.expand_dims(self.delta_1.mean(axis = 0),0)).shape)
+            self.W2 -= self.learning_rate *np.expand_dims(self.a1.mean(axis=0),1) * \
+                        np.expand_dims(self.delta_2.mean(axis=0),0)
+            ##print((np.expand_dims(self.a1.mean(axis=0),1)*np.expand_dims(self.delta_2.mean(axis=0),0)).shape)
