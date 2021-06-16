@@ -5,7 +5,7 @@ import math
 
 batch_size = 10
 nn_hdim = 2048
-learning_rate = 0.01
+learning_rate = 0.1
 f1 = "relu"
 f2 = "sigmoid"
 threshold = 0
@@ -64,8 +64,8 @@ def main():
         shuffler = np.random.permutation(len(train_label))
         train_label = train_label[shuffler]
         train_data = train_data[shuffler]
-        # if (not epoc % 5) and (epoc != 0):
-        #     my_net.learning_rate = my_net.learning_rate / 2
+        if (not epoc % 10) and (epoc != 0):
+            my_net.learning_rate = my_net.learning_rate / 2
         for i in range(0, len(train_label), batch_size):
             batch = train_data[i:batch_size + i, :]
             batch_labels = train_label[i:batch_size + i]
