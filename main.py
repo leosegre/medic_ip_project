@@ -3,12 +3,13 @@ import cv2
 import NeuralNetwork
 import math
 
-batch_size = 10
+batch_size = 5
 nn_hdim = 2048
 learning_rate = 0.1
-f1 = "relu"
+f1 = "sigmoid"
 f2 = "sigmoid"
 threshold = 0
+sd_init = 0.0001
 
 
 def load_image(prefix, number, data_vec, label_vec, is_training):
@@ -46,14 +47,13 @@ def main():
     train_label = []
     val_label = []
     train_data, val_data, train_label, val_label = load_data(train_data, val_data, train_label, val_label)
-    my_net = NeuralNetwork.NeuralNetwork(learning_rate, f1, f2)
+    my_net = NeuralNetwork.NeuralNetwork(learning_rate, f1, f2, sd_init)
     epoc = 0
     while not convergence_flag:
         batch_count = 0
         for i in range(0, len(train_label), batch_size):
             if not epoc % 5:
                 my_net.learning_rate = my_net.learning_rate / 2
-            print("epoc: ", epoc, "batch: ", batch_count)
             shuffler = np.random.permutation(len(train_label))
             train_label = train_label[shuffler]
             train_data = train_data[shuffler]
@@ -61,6 +61,8 @@ def main():
             batch_labels = train_label[i:batch_size + i]
             my_net.forward_pass(batch, batch_labels)
             my_net.calculate_accuracy(batch_labels)
+            print("epoc:", epoc, "batch:", batch_count, "loss:", my_net.loss, "accuracy:",
+                  my_net.accuracy, "prediction:", my_net.a2, "real labels:", batch_labels)
             my_net.backward_pass(batch_labels)
             my_net.compute_gradient(batch)
             batch_count+=1

@@ -10,12 +10,12 @@ class NeuralNetwork():
 ##z1 = 1X nn_hdim
 ##z2= 1X1
 
-    def __init__(self, learning_rate, f1, f2):
+    def __init__(self, learning_rate, f1, f2, sd_init):
         self.learning_rate = learning_rate
-        self.W1 = np.random.normal(0, 0.001, (1024, main.nn_hdim))
-        self.b1 = np.random.normal(0, 0.001, (1, main.nn_hdim))
-        self.W2 = np.random.normal(0, 0.001, (main.nn_hdim, 1))
-        self.b2 = np.random.normal(0, 0.001, (1, 1))
+        self.W1 = np.random.normal(0, sd_init, (1024, main.nn_hdim))
+        self.b1 = np.random.normal(0, sd_init, (1, main.nn_hdim))
+        self.W2 = np.random.normal(0, sd_init, (main.nn_hdim, 1))
+        self.b2 = np.random.normal(0, sd_init, (1, 1))
         self.f1 = f1
         self.f2 = f2
         self.z1 = None
