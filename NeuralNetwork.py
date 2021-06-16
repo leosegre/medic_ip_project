@@ -10,11 +10,11 @@ class NeuralNetwork():
 ##z1 = 1X nn_hdim
 ##z2= 1X1
 
-    def __init__(self, learning_rate, f1, f2, sd_init):
+    def __init__(self, learning_rate, f1, f2, sd_init, sd_init_w2):
         self.learning_rate = learning_rate
         self.W1 = np.random.normal(0, sd_init, (1024, main.nn_hdim))
         self.b1 = np.random.normal(0, sd_init, (1, main.nn_hdim))
-        self.W2 = np.random.normal(0, sd_init, (main.nn_hdim, 1))
+        self.W2 = np.random.normal(0, sd_init_w2, (main.nn_hdim, 1))
         self.b2 = np.random.normal(0, sd_init, (1, 1))
         self.f1 = f1
         self.f2 = f2
@@ -85,7 +85,7 @@ class NeuralNetwork():
         return predicted-labels
 
     def calculate_accuracy(self, labels):
-        self.accuracy = (np.round(self.a2) == labels).mean()
+        self.accuracy = (np.round(self.a2).squeeze() == labels).mean()
 
 
     def forward_pass(self, input, labels):
@@ -97,17 +97,17 @@ class NeuralNetwork():
 
     def backward_pass(self, labels):
         labels = np.expand_dims(labels, axis=1)
-        self.delta_2 = self.loss_function_derivative(self.a2, labels)*\
+        self.delta_2 = self.loss_function_derivative(self.a2, labels) *\
                        self.apply_activation_derivative(self.f2, self.z2)
         self.delta_1 = self.calculate_linear_combination(self.delta_2, self.W2.transpose(), 0) *\
-                       self.apply_activation_derivative(self.f1,self.z1)
+                       self.apply_activation_derivative(self.f1, self.z1)
 
     def compute_gradient(self, input):
-            self.b1 -= self.delta_1.mean(axis = 0) * self.learning_rate
-            self.b2 -= self.delta_2.mean(axis = 0) * self.learning_rate
-            self.W1 -= (self.learning_rate* np.expand_dims(input.mean(axis = 0),1) * \
-                        np.expand_dims(self.delta_1.mean(axis = 0),0))
-            ##print((np.expand_dims(input.mean(axis = 0),1) * np.expand_dims(self.delta_1.mean(axis = 0),0)).shape)
-            self.W2 -= self.learning_rate *np.expand_dims(self.a1.mean(axis=0),1) * \
-                        np.expand_dims(self.delta_2.mean(axis=0),0)
-            ##print((np.expand_dims(self.a1.mean(axis=0),1)*np.expand_dims(self.delta_2.mean(axis=0),0)).shape)
+            self.b1 -= self.delta_1.mean(axis=0) * self.learning_rate
+            self.b2 -= self.delta_2.mean(axis=0) * self.learning_rate
+            self.W1 -= self.learning_rate * np.mean(np.expand_dims(input, 2) * \
+                        np.expand_dims(self.delta_1, 1), axis=0)
+            # print((np.expand_dims(input.mean(axis = 0),1) * np.expand_dims(self.delta_1.mean(axis = 0),0)).shape)
+            self.W2 -= self.learning_rate * np.mean(np.expand_dims(self.a1, 2) * \
+                        np.expand_dims(self.delta_2, 1), axis=0)
+            # print((np.expand_dims(self.a1.mean(axis=0),1)*np.expand_dims(self.delta_2.mean(axis=0),0)).shape)
