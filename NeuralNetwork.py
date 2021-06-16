@@ -79,7 +79,9 @@ class NeuralNetwork():
             return self.relu_derivative(x)
 
     def loss_function(self, predicted, labels):
-        return (((labels-predicted)**2)/2).mean()
+        predicted = predicted.squeeze()
+        loss = (((labels-predicted)**2)/2).mean()
+        return loss
 
     def loss_function_derivative(self, predicted, labels):
         return predicted-labels
